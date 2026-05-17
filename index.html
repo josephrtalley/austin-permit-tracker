@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Austin Permit Tracker | T3 Intelligence</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --yellow: #F5C800;
+      --yellow-lt: #FFF8CC;
+      --black: #000000;
+      --white: #FFFFFF;
+      --gray: #F4F4F4;
+      --border: #D0D0D0;
+      --muted: #666666;
+      --danger: #CC0000;
+      --radius: 6px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--gray);
+      color: var(--black);
+      min-height: 100vh;
+      font-size: 14px;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--yellow);
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      height: 56px;
+      border-bottom: 3px solid var(--black);
+    }
+
+    .logo-mark {
+      width: 34px;
+      height: 34px;
+      background: var(--black);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 15px;
+      color: var(--yellow);
+      flex-shrink: 0;
+      letter-spacing: -.5px;
+    }
+
+    header h1 {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--black);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    header h1 span {
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+      margin-left: 6px;
+      font-size: 13px;
+      color: #444;
+    }
+
+    .source-badge {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--black);
+      background: rgba(0,0,0,.1);
+      border: 1px solid rgba(0,0,0,.2);
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-decoration: none;
+    }
+
+    .source-badge:hover { background: rgba(0,0,0,.18); }
+
+    /* ── Main ── */
+    main { padding: 20px 28px; max-width: 1200px; margin: 0 auto; }
+
+    /* ── Error ── */
+    .error-msg {
+      background: #FFF0F0;
+      border: 1px solid #FFAAAA;
+      border-left: 4px solid var(--danger);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      color: var(--danger);
+      margin-bottom: 16px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* ── Filter Bar ── */
+    .filter-bar {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: flex-end;
+      margin-bottom: 16px;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+    }
+
+    input[type="date"], select {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      color: var(--black);
+      padding: 6px 10px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color .15s;
+      font-family: inherit;
+    }
+
+    input[type="date"]:focus, select:focus {
+      border-color: var(--yellow);
+      box-shadow: 0 0 0 2px rgba(245,200,0,.25);
+    }
+
+    .btn {
+      padding: 7px 20px;
+      border-radius: 4px;
+      border: 2px solid var(--black);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .12s;
+      font-family: inherit;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+    }
+
+    .btn:active { transform: scale(.97); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+    .btn-primary {
+      background: var(--yellow);
+      color: var(--black);
+    }
+
+    .btn-primary:hover:not(:disabled) { background: #e6bb00; }
+
+    .btn-ghost {
+      background: var(--white);
+      color: var(--black);
+    }
+
+    .btn-ghost:hover { background: var(--gray); }
+
+    .api-note {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .api-note input {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 11px;
+      width: 220px;
+      font-family: inherit;
+    }
+
+    /* ── Stats ── */
+    .stats-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--yellow);
+      border-radius: var(--radius);
+      padding: 12px 18px;
+      min-width: 160px;
+    }
+
+    .stat-card .label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      margin-bottom: 4px;
+    }
+
+    .stat-card .value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--black);
+      line-height: 1;
+    }
+
+    .stat-card .sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    /* ── Table Card ── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 12px 18px;
+      border-bottom: 2px solid var(--black);
+      background: var(--black);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--yellow);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+    }
+
+    .card-sub {
+      font-size: 11px;
+      color: #999;
+    }
+
+    /* ── Table ── */
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      background: #F9F9F9;
+      padding: 9px 14px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    thead th:hover { color: var(--black); }
+    thead th.sort-active { color: var(--black); background: var(--yellow-lt); }
+    thead th .sort-arrow { margin-left: 4px; opacity: .4; }
+    thead th.sort-active .sort-arrow { opacity: 1; }
+
+    tbody tr { border-bottom: 1px solid #EBEBEB; transition: background .08s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--yellow-lt); }
+
+    td { padding: 10px 14px; vertical-align: top; }
+
+    .rank-cell {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--muted);
+      width: 36px;
+      text-align: center;
+    }
+
+    /* top 3 get a yellow left border */
+    tbody tr.top-rank td:first-child {
+      border-left: 3px solid var(--yellow);
+      color: var(--black);
+    }
+
+    .builder-name {
+      font-weight: 700;
+      color: var(--black);
+      margin-bottom: 1px;
+    }
+
+    .detail-text {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+      white-space: pre-line;
+    }
+
+    .count-cell {
+      font-weight: 800;
+      font-size: 15px;
+      color: var(--black);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    /* ── Empty / Loading ── */
+    .state-msg {
+      text-align: center;
+      padding: 52px 20px;
+      color: var(--muted);
+    }
+
+    .state-msg .icon { font-size: 32px; margin-bottom: 10px; }
+    .state-msg p { font-size: 14px; font-weight: 600; }
+    .state-msg small { font-size: 12px; opacity: .7; }
+
+    .spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--black);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 1000;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 20px;
+      overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--white);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 900px;
+      box-shadow: 0 8px 40px rgba(0,0,0,.25);
+      overflow: hidden;
+    }
+
+    .modal-header {
+      background: var(--black);
+      color: var(--yellow);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-header h2 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .6px; }
+    .modal-header .modal-sub { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--yellow);
+      font-size: 22px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 4px;
+    }
+
+    .modal-body { padding: 0; max-height: 70vh; overflow-y: auto; }
+
+    .modal-body table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .modal-body thead th {
+      position: sticky; top: 0;
+      background: #F9F9F9;
+      padding: 8px 12px;
+      text-align: left;
+      font-size: 10px; font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase; letter-spacing: .5px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .modal-body tbody tr { border-bottom: 1px solid #EBEBEB; }
+    .modal-body tbody tr:hover { background: var(--yellow-lt); }
+    .modal-body td { padding: 8px 12px; vertical-align: top; }
+    .modal-body .permit-addr { font-weight: 600; }
+    .modal-body .permit-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* ── Delta badges ── */
+
+    /* clickable builder name */
+    .builder-link {
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      text-underline-offset: 3px;
+    }
+    .builder-link:hover { color: #555; }
+
+    .rankings-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ── Tabs ── */
+    .tab-nav {
+      display: flex;
+      gap: 0;
+      margin-bottom: 0;
+      border-bottom: 3px solid var(--black);
+    }
+
+    .tab-btn {
+      padding: 9px 22px;
+      border: 2px solid var(--black);
+      border-bottom: none;
+      border-radius: 6px 6px 0 0;
+      background: var(--white);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: inherit;
+      margin-right: 4px;
+      transition: background .1s, color .1s;
+    }
+
+    .tab-btn:hover { background: var(--yellow-lt); color: var(--black); }
+    .tab-btn.active { background: var(--yellow); color: var(--black); border-color: var(--black); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Mailer result count ── */
+    .mailer-meta {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    /* ── Mailer table ── */
+    .mailer-addr { font-weight: 700; font-size: 13px; }
+    .mailer-sub  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* ── Tag pills ── */
+    .pill {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+      white-space: nowrap;
+    }
+    .pill-add     { background: #E8F5E9; color: #1a7a3f; }
+    .pill-rem     { background: #FFF8E1; color: #7a5a00; }
+    .pill-repair  { background: #F3E5F5; color: #6a1b9a; }
+    .pill-default { background: var(--gray); color: var(--muted); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">T3</div>
+  <h1>Austin Permit Tracker</h1>
+  <a class="source-badge" href="https://data.austintexas.gov/Building-and-Development/Issued-Construction-Permits/3syk-w9eu" target="_blank">Austin Open Data ↗</a>
+</header>
+
+<main>
+
+  <div id="errorBox" class="error-msg" style="display:none;"></div>
+
+  <!-- Tab nav -->
+  <div class="tab-nav">
+    <button class="tab-btn active" id="tab-rankings" onclick="switchTab('rankings')">🏆 Top Builders</button>
+    <button class="tab-btn"        id="tab-mailer"   onclick="switchTab('mailer')">🔨 Additions & Remodels</button>
+  </div>
+
+  <!-- Shared date filters -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>Quick Range</label>
+      <select id="relativeDate" onchange="applyRelativeDate()">
+        <option value="30">Last 30 days</option>
+        <option value="90" selected>Last 90 days</option>
+        <option value="180">Last 6 months</option>
+        <option value="365">Last 12 months</option>
+        <option value="ytd">Year to date</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Start Date</label>
+      <input type="date" id="startDate">
+    </div>
+    <div class="filter-group">
+      <label>End Date</label>
+      <input type="date" id="endDate">
+    </div>
+
+    <!-- Rankings-specific filters -->
+    <div id="rankingsFilters" style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap">
+      <div class="filter-group">
+        <label>Permit Type</label>
+        <select id="permitType">
+          <option value="all">All Types</option>
+          <option value="Building Permit" selected>Building Permit</option>
+          <option value="Electrical Permit">Electrical</option>
+          <option value="Mechanical Permit">Mechanical</option>
+          <option value="Plumbing Permit">Plumbing</option>
+          <option value="Sign Permit">Sign</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Work Class</label>
+        <select id="workClass">
+          <option value="all">All Types</option>
+          <option value="New" selected>New Construction</option>
+          <option value="Addition">Addition</option>
+          <option value="Remodel">Remodel</option>
+          <option value="Repair">Repair</option>
+          <option value="Demolition">Demolition</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Show Top</label>
+        <select id="topN">
+          <option value="10">Top 10</option>
+          <option value="25" selected>Top 25</option>
+          <option value="50">Top 50</option>
+          <option value="100">Top 100</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="loadBtn" onclick="loadData()">Load Rankings</button>
+      <button class="btn btn-ghost" onclick="exportCSV()">Export CSV</button>
+    </div>
+
+    <!-- Mailer-specific filters -->
+    <div id="mailerFilters" style="display:none;gap:14px;align-items:flex-end;flex-wrap:wrap">
+      <div class="filter-group">
+        <label>Work Class</label>
+        <select id="mailerWorkClass">
+          <option value="add_rem" selected>Addition + Remodel</option>
+          <option value="Addition">Addition Only</option>
+          <option value="Remodel">Remodel Only</option>
+          <option value="Repair">Repair Only</option>
+          <option value="all">All Work Classes</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Permit Class</label>
+        <select id="mailerPermitClass">
+          <option value="Residential" selected>Residential</option>
+          <option value="Commercial">Commercial</option>
+          <option value="all">All</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Max Records</label>
+        <select id="mailerLimit">
+          <option value="250">250</option>
+          <option value="500" selected>500</option>
+          <option value="1000">1,000</option>
+          <option value="2000">2,000</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="loadMailer()">Load Permits</button>
+      <button class="btn btn-ghost" onclick="exportMailerCSV()">Export CSV</button>
+    </div>
+  </div>
+
+  <input type="hidden" id="appToken" value="">
+
+  <!-- Drill-down modal -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h2 id="modalTitle">Permit Detail</h2>
+          <div class="modal-sub" id="modalSub"></div>
+        </div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <div class="state-msg"><span class="spinner"></span> Loading…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab panels -->
+  <div id="panel-rankings" class="tab-panel active">
+    <div id="rankingsContainer">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Builder Rankings</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr><td colspan="5"><div class="state-msg">
+                <div class="icon">🏗️</div>
+                <p>No data loaded yet</p>
+                <small>Set your date range and click Load Rankings</small>
+              </div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-mailer" class="tab-panel">
+    <div id="mailerContainer">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Additions & Remodels</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr><td colspan="5"><div class="state-msg">
+                <div class="icon">📬</div>
+                <p>No data loaded yet</p>
+                <small>Set your date range and click Load Permits</small>
+              </div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // ── State ──────────────────────────────────────────────────────────────────
+  let rawData  = [];
+  let sortCol  = 'count';
+  let sortDir  = -1;
+  let _loadFilters = {};
+
+  // Confirmed field names from Austin dataset
+  const F = {
+    name:        'contractor_company_name',
+    val:         'total_job_valuation',
+    addr1:       'contractor_address1',
+    addr2:       'contractor_address2',
+    city:        'contractor_city',
+    zip:         'contractor_zip',
+    fullName:    'contractor_full_name',
+    phone:       'contractor_phone',
+    units:       'housing_units',
+    sqft:        'total_new_add_sqft',
+    permitType:  'permit_type_desc',
+    workClass:   'work_class',
+    permitClass: 'permit_class_mapped',
+    issueDate:   'issue_date'
+  };
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  (function init() {
+    applyRelativeDate();
+    loadPermitTypes();
+  })();
+
+  function applyRelativeDate() {
+    const sel = document.getElementById('relativeDate').value;
+    const end   = new Date();
+    const start = new Date();
+    if (sel === 'ytd') {
+      start.setMonth(0); start.setDate(1);
+    } else {
+      start.setDate(end.getDate() - parseInt(sel));
+    }
+    document.getElementById('startDate').value = fmtDate(start);
+    document.getElementById('endDate').value   = fmtDate(end);
+  }
+
+  async function loadPermitTypes() {
+    try {
+      const data = await soql({
+        '$select': `${F.permitType}, count(*) as cnt`,
+        '$where':  `${F.permitType} IS NOT NULL`,
+        '$group':  F.permitType,
+        '$order':  'cnt DESC',
+        '$limit':  25
+      });
+      const sel = document.getElementById('permitType');
+      sel.innerHTML = '<option value="all" selected>All Types</option>';
+      data.forEach(r => {
+        const v = r[F.permitType];
+        const opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = v;
+        sel.appendChild(opt);
+      });
+    } catch (e) {
+      console.warn('Could not load permit types:', e);
+    }
+  }
+
+  // ── API ────────────────────────────────────────────────────────────────────
+  const BASE = 'https://data.austintexas.gov/resource/3syk-w9eu.json';
+
+  async function soql(params) {
+    const appToken = document.getElementById('appToken').value.trim();
+    if (appToken) params['$$app_token'] = appToken;
+    const qs = Object.entries(params)
+      .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v))
+      .join('&');
+    const res = await fetch(`${BASE}?${qs}`);
+    if (!res.ok) {
+      let msg = `API error ${res.status}`;
+      try { const j = await res.json(); msg += ': ' + (j.message || j.error || JSON.stringify(j)); } catch {}
+      throw new Error(msg);
+    }
+    return res.json();
+  }
+
+  async function loadData() {
+    const btn      = document.getElementById('loadBtn');
+    const errorBox = document.getElementById('errorBox');
+    errorBox.style.display = 'none';
+
+    const startDate   = document.getElementById('startDate').value;
+    const endDate     = document.getElementById('endDate').value;
+    const workClass   = document.getElementById('workClass').value;
+    const permitType  = document.getElementById('permitType').value;
+    const topN        = parseInt(document.getElementById('topN').value);
+    _loadFilters = { startDate, endDate, workClass, permitType };
+
+    if (!startDate || !endDate) { showError('Please select both a start and end date.'); return; }
+    if (new Date(startDate) > new Date(endDate)) { showError('Start date must be before end date.'); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Loading…';
+    setTableLoading();
+
+    try {
+      const where = [
+        `${F.issueDate} >= '${startDate}T00:00:00.000'`,
+        `${F.issueDate} <= '${endDate}T23:59:59.000'`,
+        `${F.name} IS NOT NULL`,
+        permitType !== 'all' ? `${F.permitType} = '${permitType}'` : null,
+        workClass  !== 'all' ? `${F.workClass}  = '${workClass}'`  : null
+      ].filter(Boolean).join(' AND ');
+
+      // Group by both builder and permit class so we can split
+      rawData = await soql({
+        '$select': `${F.name}, ${F.permitClass}, count(*) as permit_count, sum(${F.units}) as units, sum(${F.sqft}) as sqft`,
+        '$where':  where,
+        '$group':  `${F.name}, ${F.permitClass}`,
+        '$order':  'permit_count DESC',
+        '$limit':  topN * 10
+      });
+
+      if (!rawData.length) {
+        showError('No results — try a wider date range or different filters.');
+        setTableLoading(); resetStats(); return;
+      }
+
+      // Contact lookup across all unique names
+      const names = [...new Set(rawData.map(r => r[F.name]).filter(Boolean))];
+      const addrMap = await lookupContacts(names);
+      rawData = rawData.map(r => {
+        const a = addrMap[r[F.name]] || {};
+        return {
+          ...r,
+          contractor_company_name: r[F.name],
+          permit_class: r[F.permitClass] || 'Unknown',
+          address1:  a.address1  || '',
+          address2:  a.address2  || '',
+          city:      a.city      || '',
+          zip:       a.zip       || '',
+          full_name: a.full_name || '',
+          phone:     a.phone     || '',
+          units:     parseInt(r.units || 0),
+          sqft:      parseInt(r.sqft  || 0)
+        };
+      });
+
+
+      renderStats(startDate, endDate, workClass, permitType);
+      renderAllClasses(topN);
+
+    } catch (err) {
+      showError(`Failed to load data: ${err.message}`);
+      console.error(err);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Load Rankings';
+    }
+  }
+
+  async function lookupContacts(names) {
+    if (!names.length) return {};
+    const inList = names.map(n => `'${n.replace(/'/g, "''")}'`).join(',');
+    try {
+      const rows = await soql({
+        '$select': [
+          F.name,
+          `${F.addr1} as address1`,
+          `${F.addr2} as address2`,
+          `${F.city} as city`,
+          `${F.zip} as zip`,
+          `max(${F.fullName}) as full_name`,
+          `max(${F.phone}) as phone`,
+          `count(*) as cnt`
+        ].join(', '),
+        '$where':  `${F.name} in(${inList}) AND ${F.addr2} IS NOT NULL`,
+        '$group':  `${F.name}, ${F.addr2}, ${F.addr1}, ${F.city}, ${F.zip}`,
+        '$order':  'cnt DESC',
+        '$limit':  names.length * 5
+      });
+      const map = {};
+      rows.forEach(r => {
+        const key = r[F.name];
+        if (!map[key]) map[key] = r;
+      });
+      return map;
+    } catch (e) {
+      console.warn('Contact lookup failed:', e.message);
+      return {};
+    }
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+  function renderStats(startDate, endDate) {
+    // subtitle lives in each card header now — nothing global needed
+  }
+
+  function renderAllClasses(topN) {
+    // Group rows by permit_class
+    const byClass = {};
+    rawData.forEach(r => {
+      const cls = r.permit_class || 'Unknown';
+      if (!byClass[cls]) byClass[cls] = [];
+      byClass[cls].push(r);
+    });
+
+    // Sort classes: Residential first, then Commercial, then others
+    const order = ['Residential', 'Commercial'];
+    const classes = [
+      ...order.filter(c => byClass[c]),
+      ...Object.keys(byClass).filter(c => !order.includes(c)).sort()
+    ];
+
+    const container = document.getElementById('rankingsContainer');
+
+    if (classes.length > 1) {
+      container.innerHTML = `<div class="rankings-grid">${classes.map(cls => buildClassCard(cls, byClass[cls], topN)).join('')}</div>`;
+    } else {
+      container.innerHTML = classes.map(cls => buildClassCard(cls, byClass[cls], topN)).join('');
+    }
+  }
+
+  function buildClassCard(className, rows, topN) {
+    const sorted = [...rows]
+      .sort((a, b) => parseInt(b.permit_count || 0) - parseInt(a.permit_count || 0))
+      .slice(0, topN);
+
+    const tbody = sorted.map((r, i) => {
+      const topClass  = i < 3 ? ' top-rank' : '';
+      const addr      = [r.address2, r.address1].filter(Boolean).join(' ') || '—';
+      const count     = parseInt(r.permit_count || 0);
+      const nameAttr = escHtml(r.contractor_company_name || '').replace(/"/g, '&quot;');
+      return `<tr class="${topClass}">
+        <td class="rank-cell">${i + 1}</td>
+        <td><div class="builder-name builder-link" onclick="drillDown('${nameAttr}')">${escHtml(r.contractor_company_name || '—')}</div></td>
+        <td><div class="detail-text">${escHtml(r.full_name || '—')}</div></td>
+        <td><div class="detail-text">${escHtml(r.phone ? fmtPhone(r.phone) : '—')}</div></td>
+        <td><div class="detail-text">${escHtml(addr)}</div></td>
+        <td><div class="detail-text">${escHtml(r.city || '—')}</div></td>
+        <td><div class="detail-text">${escHtml(r.zip || '—')}</div></td>
+        <td class="count-cell">${count.toLocaleString()}</td>
+        <td class="count-cell">${r.units > 0 ? r.units.toLocaleString() : '—'}</td>
+        <td class="count-cell">${r.sqft  > 0 ? r.sqft.toLocaleString()  : '—'}</td>
+      </tr>`;
+    }).join('');
+
+    return `
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">${escHtml(className)}</span>
+          <span class="card-sub">${sorted.length} builders</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Contractor</th>
+                <th>Contact</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th>City</th>
+                <th>ZIP</th>
+                <th style="text-align:right">Permits</th>
+                <th style="text-align:right">Units</th>
+                <th style="text-align:right">SqFt</th>
+              </tr>
+            </thead>
+            <tbody>${tbody}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
+  function buildAddress(r) {
+    const line1 = [r.address2, r.address1].filter(Boolean).join(' ');
+    const line2 = [r.city, r.zip].filter(Boolean).join(' ');
+    return [line1, line2].filter(Boolean).join('\n') || '—';
+  }
+
+  // ── Export ─────────────────────────────────────────────────────────────────
+  function exportCSV() {
+    if (!rawData.length) { alert('Load data first.'); return; }
+    const header = ['Permit Class', 'Rank', 'Contractor', 'Contact', 'Phone', 'Address', 'City', 'ZIP', 'Permits', 'Units', 'SqFt'];
+    const byClass = {};
+    rawData.forEach(r => {
+      const cls = r.permit_class || 'Unknown';
+      if (!byClass[cls]) byClass[cls] = [];
+      byClass[cls].push(r);
+    });
+    const order = ['Residential', 'Commercial'];
+    const classes = [...order.filter(c => byClass[c]), ...Object.keys(byClass).filter(c => !order.includes(c)).sort()];
+    const topN = parseInt(document.getElementById('topN').value);
+    const rows = [];
+    classes.forEach(cls => {
+      const sorted = [...byClass[cls]].sort((a,b) => parseInt(b.permit_count||0) - parseInt(a.permit_count||0)).slice(0, topN);
+      sorted.forEach((r, i) => rows.push([
+        csvEsc(cls), i + 1,
+        csvEsc(r.contractor_company_name),
+        csvEsc(r.full_name),
+        csvEsc(r.phone),
+        csvEsc([r.address2, r.address1].filter(Boolean).join(' ')),
+        csvEsc(r.city),
+        csvEsc(r.zip),
+        parseInt(r.permit_count || 0),
+        r.units || 0,
+        r.sqft  || 0
+      ]));
+    });
+    const csv = [header, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `austin-permit-top-builders_${document.getElementById('startDate').value}_${document.getElementById('endDate').value}.csv`;
+    a.click();
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function showError(msg) {
+    const box = document.getElementById('errorBox');
+    box.textContent = '⚠ ' + msg;
+    box.style.display = 'block';
+  }
+
+  function stateCard(inner) {
+    return `<div class="card"><div class="table-wrap"><table><tbody>
+      <tr><td colspan="10"><div class="state-msg">${inner}</div></td></tr>
+    </tbody></table></div></div>`;
+  }
+
+  function setTableLoading() {
+    document.getElementById('rankingsContainer').innerHTML =
+      stateCard('<span class="spinner"></span> Querying Austin Open Data…');
+  }
+
+  function setTableEmpty() {
+    document.getElementById('rankingsContainer').innerHTML =
+      stateCard('<div class="icon">🔍</div><p>No results</p><small>Try adjusting filters</small>');
+  }
+
+  function resetStats() {}
+
+  function fmtDate(d) {
+    return d.toISOString().split('T')[0];
+  }
+
+  function fmtPhone(p) {
+    const d = (p || '').replace(/\D/g, '');
+    if (d.length === 10) return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`;
+    if (d.length === 11 && d[0] === '1') return `(${d.slice(1,4)}) ${d.slice(4,7)}-${d.slice(7)}`;
+    return p;
+  }
+
+  function escHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function csvEsc(v) {
+    const s = String(v || '');
+    return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g,'""')}"` : s;
+  }
+
+  // ── Tab switching ─────────────────────────────────────────────────────────
+  function switchTab(name) {
+    ['rankings', 'mailer'].forEach(t => {
+      document.getElementById(`tab-${t}`).classList.toggle('active', t === name);
+      document.getElementById(`panel-${t}`).classList.toggle('active', t === name);
+    });
+    document.getElementById('rankingsFilters').style.display = name === 'rankings' ? 'flex' : 'none';
+    document.getElementById('mailerFilters').style.display   = name === 'mailer'   ? 'flex' : 'none';
+  }
+
+  // ── Mailer state ──────────────────────────────────────────────────────────
+  let mailerData = [];
+  let mailerFieldMap = {};
+
+  // ── Load Mailer ───────────────────────────────────────────────────────────
+  async function loadMailer() {
+    const startDate = document.getElementById('startDate').value;
+    const endDate   = document.getElementById('endDate').value;
+    if (!startDate || !endDate) { showError('Please select a date range.'); return; }
+
+    document.getElementById('errorBox').style.display = 'none';
+    document.getElementById('mailerContainer').innerHTML =
+      `<div class="card"><div class="table-wrap"><table><tbody><tr><td colspan="8">
+       <div class="state-msg"><span class="spinner"></span> Querying Austin Open Data…</div>
+       </td></tr></tbody></table></div></div>`;
+
+    const wc    = document.getElementById('mailerWorkClass').value;
+    const pc    = document.getElementById('mailerPermitClass').value;
+    const limit = document.getElementById('mailerLimit').value;
+
+    try {
+      const conditions = [
+        `${F.issueDate} >= '${startDate}T00:00:00.000'`,
+        `${F.issueDate} <= '${endDate}T23:59:59.000'`
+      ];
+
+      if (wc === 'add_rem') {
+        conditions.push(`(${F.workClass} = 'Addition' OR ${F.workClass} = 'Remodel')`);
+      } else if (wc !== 'all') {
+        conditions.push(`${F.workClass} = '${wc}'`);
+      }
+
+      if (pc !== 'all') {
+        conditions.push(`${F.permitClass} = '${pc}'`);
+      }
+
+      const rows = await soql({
+        '$select': '*',
+        '$where':  conditions.join(' AND '),
+        '$order':  `${F.issueDate} DESC`,
+        '$limit':  limit
+      });
+
+      if (!rows.length) {
+        document.getElementById('mailerContainer').innerHTML =
+          `<div class="card"><div class="table-wrap"><table><tbody><tr><td colspan="8">
+           <div class="state-msg"><div class="icon">📭</div><p>No results</p><small>Try adjusting filters</small></div>
+           </td></tr></tbody></table></div></div>`;
+        return;
+      }
+
+      // Sniff actual field names from first row
+      const s = rows[0];
+      mailerFieldMap = {
+        addr: ['original_address1','project_address','address1','site_address'].find(k => k in s) || 'original_address1',
+        city: ['original_city','project_city','city','site_city'].find(k => k in s) || 'original_city',
+        zip:  ['original_zip','original_zip_code','zip_code','zip'].find(k => k in s) || 'original_zip',
+        desc: ['description','work_description','description_of_work'].find(k => k in s) || 'description',
+        stat: ['status_current','status','permit_status'].find(k => k in s) || 'status_current',
+        num:  ['permit_num','permit_number','permitnum','folionum','permit_nbr'].find(k => k in s) || 'permit_num'
+      };
+
+      // Dedupe by job address — keep most recent permit per address (rows already sorted DESC)
+      const seen = new Set();
+      const deduped = rows.filter(r => {
+        const key = (r[mailerFieldMap.addr] || '').trim().toLowerCase();
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      mailerData = deduped;
+      renderMailerTable(deduped);
+
+    } catch(err) {
+      showError(`Failed to load mailer: ${err.message}`);
+      console.error(err);
+    }
+  }
+
+  function wcPill(wc) {
+    if (!wc) return '';
+    const cls = wc === 'Addition' ? 'pill-add' : wc === 'Remodel' ? 'pill-rem' : wc === 'Repair' ? 'pill-repair' : 'pill-default';
+    return `<span class="pill ${cls}">${escHtml(wc)}</span>`;
+  }
+
+  function renderMailerTable(rows) {
+    const fm = mailerFieldMap;
+    const tbody = rows.map(r => {
+      const addr = escHtml(r[fm.addr] || '—');
+      const city = escHtml(r[fm.city] || '—');
+      const zip  = escHtml(r[fm.zip]  || '—');
+      const desc = escHtml(r[fm.desc] || '—');
+      const dt   = r[F.issueDate] ? r[F.issueDate].slice(0, 10) : '—';
+      const wc   = r[F.workClass] || '';
+      const num  = escHtml(r[fm.num]  || '—');
+      const sqft = r[F.sqft] > 0 ? parseInt(r[F.sqft]).toLocaleString() : '—';
+      const co   = escHtml(r[F.name]     || '—');
+      const cn   = escHtml(r[F.fullName] || '—');
+      const ph   = r[F.phone] ? escHtml(fmtPhone(r[F.phone])) : '—';
+      const ca   = escHtml([r[F.addr2], r[F.addr1]].filter(Boolean).join(' ') || '—');
+      const cc   = escHtml(r[F.city] || '—');
+      const cz   = escHtml(r[F.zip]  || '—');
+      return `<tr>
+        <td>
+          <div class="mailer-addr">${addr}</div>
+          <div class="mailer-sub">${city}${zip ? ', ' + zip : ''}</div>
+        </td>
+        <td>${wcPill(wc)}</td>
+        <td><div class="mailer-sub">${dt}</div></td>
+        <td style="max-width:220px"><div class="mailer-sub">${desc}</div></td>
+        <td style="text-align:right;white-space:nowrap">${sqft}</td>
+        <td>
+          <div style="font-weight:700;font-size:12px">${co}</div>
+          <div class="mailer-sub">${cn}</div>
+        </td>
+        <td><div class="mailer-sub">${ph}</div></td>
+        <td>
+          <div class="mailer-sub">${ca}</div>
+          <div class="mailer-sub">${cc}${cz ? ' ' + cz : ''}</div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('mailerContainer').innerHTML = `
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Additions & Remodels</span>
+          <span class="card-sub">${rows.length.toLocaleString()} records</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Job Address</th>
+                <th>Work</th>
+                <th>Issued</th>
+                <th>Description</th>
+                <th style="text-align:right">SqFt</th>
+                <th>Contractor</th>
+                <th>Phone</th>
+                <th>Contractor Address</th>
+              </tr>
+            </thead>
+            <tbody>${tbody}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
+  function exportMailerCSV() {
+    if (!mailerData.length) { alert('Load mailer data first.'); return; }
+    const fm = mailerFieldMap;
+    const header = ['Job Address','City','ZIP','Work Class','Permit Class','Issue Date','Description','SqFt',
+                    'Contractor','Contact','Phone','Contractor Address','Contractor City','Contractor ZIP'];
+    const rows = mailerData.map(r => [
+      csvEsc(r[fm.addr]),
+      csvEsc(r[fm.city]),
+      csvEsc(r[fm.zip]),
+      csvEsc(r[F.workClass]),
+      csvEsc(r[F.permitClass]),
+      r[F.issueDate] ? r[F.issueDate].slice(0, 10) : '',
+      csvEsc(r[fm.desc]),
+      r[F.sqft] > 0 ? parseInt(r[F.sqft]) : '',
+      csvEsc(r[F.name]),
+      csvEsc(r[F.fullName]),
+      csvEsc(r[F.phone] ? fmtPhone(r[F.phone]) : ''),
+      csvEsc([r[F.addr2], r[F.addr1]].filter(Boolean).join(' ')),
+      csvEsc(r[F.city]),
+      csvEsc(r[F.zip])
+    ]);
+    const csv  = [header, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a    = document.createElement('a');
+    a.href     = URL.createObjectURL(blob);
+    a.download = `austin-mailer_${document.getElementById('startDate').value}_${document.getElementById('endDate').value}.csv`;
+    a.click();
+  }
+
+  // ── Drill-down modal ───────────────────────────────────────────────────────
+  async function drillDown(builderName) {
+    const overlay = document.getElementById('modalOverlay');
+    document.getElementById('modalTitle').textContent = builderName;
+    document.getElementById('modalSub').textContent =
+      `${_loadFilters.startDate} → ${_loadFilters.endDate}`;
+    document.getElementById('modalBody').innerHTML =
+      '<div class="state-msg"><span class="spinner"></span> Loading permits…</div>';
+    overlay.classList.add('open');
+
+    try {
+      const conditions = [
+        `${F.name} = '${builderName.replace(/'/g, "''")}'`,
+        `${F.issueDate} >= '${_loadFilters.startDate}T00:00:00.000'`,
+        `${F.issueDate} <= '${_loadFilters.endDate}T23:59:59.000'`
+      ];
+      if (_loadFilters.permitType && _loadFilters.permitType !== 'all')
+        conditions.push(`${F.permitType} = '${_loadFilters.permitType}'`);
+      if (_loadFilters.workClass && _loadFilters.workClass !== 'all')
+        conditions.push(`${F.workClass} = '${_loadFilters.workClass}'`);
+
+      // Use $select=* so we get all fields regardless of API naming variations
+      const permits = await soql({
+        '$select': `*`,
+        '$where':  conditions.join(' AND '),
+        '$order':  `${F.issueDate} DESC`,
+        '$limit':  '200'
+      });
+
+      if (!permits.length) {
+        document.getElementById('modalBody').innerHTML =
+          '<div class="state-msg"><p>No permits found for this selection.</p></div>';
+        return;
+      }
+
+      // Resolve field name variants — Austin's API may differ from BLDS display names
+      const sample = permits[0];
+      const fNum  = ['permit_num','permit_number','permitnum','folionum','permit_nbr']
+                      .find(k => k in sample) || 'permit_num';
+      const fAddr = ['original_address1','project_address','address1','site_address']
+                      .find(k => k in sample) || 'original_address1';
+      const fCity = ['original_city','project_city','city','site_city']
+                      .find(k => k in sample) || 'original_city';
+      const fDesc = ['description','work_description','description_of_work']
+                      .find(k => k in sample) || 'description';
+      const fStat = ['status_current','status','permit_status']
+                      .find(k => k in sample) || 'status_current';
+
+      const rows = permits.map(p => {
+        const dt   = p[F.issueDate] ? p[F.issueDate].slice(0, 10) : '—';
+        const addr = escHtml(p[fAddr] || '—');
+        const city = escHtml(p[fCity] || '—');
+        const num  = escHtml(p[fNum]  || '—');
+        const desc = escHtml(p[fDesc] || '—');
+        const stat = escHtml(p[fStat] || '—');
+        const wc   = escHtml(p[F.workClass]      || '—');
+        const pc   = escHtml(p[F.permitClass]    || '—');
+        const u    = p[F.units] > 0 ? parseInt(p[F.units]).toLocaleString() : '—';
+        const sf   = p[F.sqft]  > 0 ? parseInt(p[F.sqft]).toLocaleString()  : '—';
+        return `<tr>
+          <td>${addr}</td>
+          <td>${city}</td>
+          <td style="white-space:nowrap">${num}</td>
+          <td style="white-space:nowrap">${dt}</td>
+          <td>${desc}</td>
+          <td>${pc}</td>
+          <td>${wc}</td>
+          <td style="text-align:right">${u}</td>
+          <td style="text-align:right">${sf}</td>
+          <td>${stat}</td>
+        </tr>`;
+      }).join('');
+
+      document.getElementById('modalBody').innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Address</th>
+                <th>City</th>
+                <th>Permit #</th>
+                <th>Issue Date</th>
+                <th>Description</th>
+                <th>Class</th>
+                <th>Work Class</th>
+                <th style="text-align:right">Units</th>
+                <th style="text-align:right">SqFt</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+    } catch(e) {
+      document.getElementById('modalBody').innerHTML =
+        `<div class="state-msg"><p>Error: ${escHtml(e.message)}</p></div>`;
+    }
+  }
+
+  function closeModal(e) {
+    if (!e || e.target === document.getElementById('modalOverlay')) {
+      document.getElementById('modalOverlay').classList.remove('open');
+    }
+  }
+</script>
+</body>
+</html>
